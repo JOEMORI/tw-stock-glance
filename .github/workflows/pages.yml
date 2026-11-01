@@ -1,0 +1,52 @@
+# 手機版：每個交易日收盤後整理資料並發布到 GitHub Pages
+name: 手機版資料與網站
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '5 9 * * 1-5'    # 台灣 17:05（收盤資料齊全）
+    - cron: '45 13 * * 1-5'  # 台灣 21:45（融資融券、內部人申報）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # 公告、全市場行情要逐日累積，用快取保存上次的資料
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: store-${{ github.run_id }}
+          restore-keys: store-
+      - name: 組網站
+        run: bash scripts/build-site.sh _site
+      - name: 抓資料
+        run: node scripts/build-data.mjs _site/data .cache/store.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

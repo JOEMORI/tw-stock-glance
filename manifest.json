@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "台股收盤速覽",
   "short_name": "收盤速覽",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "收盤後一頁看完自選股：K 線與支撐壓力、關聯脈絡、新聞與行事曆、同業、族群強弱、估值、大戶持股、每週報告。",
   "permissions": ["storage", "unlimitedStorage", "alarms", "notifications"],
   "host_permissions": ["https://api.finmindtrade.com/*", "https://www.twse.com.tw/*", "https://www.tpex.org.tw/*", "https://news.google.com/*", "https://opendata.tdcc.com.tw/*", "https://openapi.twse.com.tw/*"],

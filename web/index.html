@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="收盤速覽">
+<meta name="theme-color" content="#F5F4F0">
+<title>台股收盤速覽</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon180.png">
+<link rel="icon" href="icon192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="hd">
+  <div class="hd-t"><span id="eyebrow" class="eyebrow">DAILY CLOSE</span><h1 id="title">收盤速覽</h1></div>
+  <div class="fs" role="group" aria-label="字體大小">
+    <button type="button" data-fs="1" aria-label="字體標準">A</button><button type="button" data-fs="2" aria-label="字體大">A</button><button type="button" data-fs="3" aria-label="字體特大">A</button>
+  </div>
+</header>
+<main id="view" class="view" tabindex="-1"></main>
+<nav class="tabs" aria-label="主要頁面">
+  <a href="#/" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg><span>收盤速覽</span></a>
+  <a href="#/radar" data-tab="radar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 19 5"/></svg><span>情報雷達</span><b id="radarN" class="badge"></b></a>
+  <a href="#/week" data-tab="week"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>每週</span></a>
+  <a href="#/settings" data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>設定</span></a>
+</nav>
+<script src="vendor/lightweight-charts.standalone.production.js"></script>
+<script src="shim.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,5 +1,12 @@
 # 開發日誌：台股收盤速覽
 
+## 2026-11-02　v1.2 iPhone 版
+- 選擇網頁 App（PWA）而非原生 App：免費、不用每 7 天重裝、程式大多可重用。
+- 跨網域：FinMind 與證交所 rwd 允許跨網域，手機直接查；證交所 openapi、櫃買中心、集保不允許，改由 GitHub Actions 抓好放在 Pages（同網域）。
+- 重用方式：Node 端用 scripts/chrome-shim.mjs 模擬 chrome.storage，直接執行插件的 lib/ 模組；手機端用 web/shim.js 以 localStorage 模擬。
+- 隱私：repo 公開，所以 Pages 只放全市場公開資料；自選股、觀察清單只存在手機 localStorage，由手機自己向 FinMind 查。
+- 公告與全市場行情需逐日累積，Actions 用快取保存 .cache/store.json。
+
 ## 2026-11-01　v1.1 字體大小
 - 用 CSS zoom 讓整頁等比例放大，現有的 px 樣式與 JS 產生的內容都不用逐一改。
 - 問題：lightweight-charts 在被 zoom 的容器裡，滑鼠座標會錯位（十字線偏離滑鼠）。做法是圖表容器反向縮放（zoom: 1/scale），高度與字級改乘以 scale，視覺大小一致、座標正確；壓力支撐標籤欄同樣處理。實測 1.4 倍時十字線落在滑鼠位置。
