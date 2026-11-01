@@ -62,7 +62,7 @@ main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; g
 .level { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--ground); }
 .level b { font-weight: 500; font-size: 15px; }
 
-.chart { height: 420px; width: 100%; }
+.chart { height: calc(420px * var(--scale, 1)); width: 100%; zoom: calc(1 / var(--scale, 1)); }
 .note { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
@@ -195,7 +195,7 @@ html { scroll-behavior: smooth; }
 .highlights li { display: flex; gap: 10px; }
 .highlights li span:first-child { flex: 0 0 auto; color: var(--muted); font-size: 12px; padding-top: 2px; min-width: 32px; }
 .tag.state { border-style: dashed; color: var(--muted); }
-.chart.with-ind { height: 560px; }
+.chart.with-ind { height: calc(560px * var(--scale, 1)); }
 
 /* v0.5.2 版面：自選股總表取代左側清單，個股細節改為全寬 */
 #main { flex: 1 1 100%; }
@@ -289,8 +289,8 @@ td.chg small { display: block; font-size: 12px; opacity: .8; }
 .hold-box { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .chart-wrap { display: flex; }
 .chart-wrap .chart { flex: 1 1 auto; min-width: 0; }
-.lv-tags { position: relative; flex: 0 0 52px; overflow: hidden; }
-.lv-tags span { position: absolute; left: 0; height: 20px; line-height: 20px; padding: 0 6px; font-size: 12px; white-space: nowrap; background: #9A968C; color: #FFF; }
+.lv-tags { position: relative; flex: 0 0 calc(52px * var(--scale, 1)); overflow: hidden; zoom: calc(1 / var(--scale, 1)); }
+.lv-tags span { position: absolute; left: 0; height: calc(20px * var(--scale, 1)); line-height: calc(20px * var(--scale, 1)); padding: 0 calc(6px * var(--scale, 1)); font-size: calc(12px * var(--scale, 1)); white-space: nowrap; background: #9A968C; color: #FFF; }
 .lv-tags span.on { background: #1A1A1A; }
 .attrib { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 0 2px; font-size: 14px; }
 .attrib:empty { display: none; }
@@ -323,7 +323,7 @@ td.chg small { display: block; font-size: 12px; opacity: .8; }
 .ent-head h2 { margin: 0 0 6px; font-size: 20px; }
 .ent-px { font-size: 22px; }
 .ent-ctl { display: flex; gap: 10px; align-items: center; }
-.ent-chart { height: 360px; margin: 12px 0 6px; }
+.ent-chart { height: calc(360px * var(--scale, 1)); margin: 12px 0 6px; zoom: calc(1 / var(--scale, 1)); }
 .ent-dlg .stats { margin-top: 12px; }
 /* 對答案 */
 .review { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }

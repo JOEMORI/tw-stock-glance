@@ -1,3 +1,5 @@
+import { initScale, uiScale } from './lib/ui.js';
+initScale();
 import { getWatchlist, setWatchlist, getSettings, setSettings, getObserve, setObserve, getKeywords } from './lib/storage.js';
 import { buildIntel } from './lib/intel.js';
 import { loadStock, getCachedStock, getStockInfo, loadEntity, loadEntityLong, finmindUsage, pruneCaches, FM_LIMIT, loadFinancials } from './lib/api.js';
@@ -659,7 +661,7 @@ function renderChart(a) {
   $('indSeg').innerHTML = segHTML([{ l: '無', v: 'none' }, { l: 'KD', v: 'kd' }, { l: 'MACD', v: 'macd' }, { l: 'RSI', v: 'rsi' }], state.ind);
   const chart = LC.createChart(el, {
     autoSize: true,
-    layout: { background: { type: 'solid', color: '#FFFFFF' }, textColor: '#5C5C5C', fontFamily: getComputedStyle(document.body).fontFamily, fontSize: 12 },
+    layout: { background: { type: 'solid', color: '#FFFFFF' }, textColor: '#5C5C5C', fontFamily: getComputedStyle(document.body).fontFamily, fontSize: Math.round(12 * uiScale()) },
     grid: { vertLines: { color: '#F3F1EC' }, horzLines: { color: '#F3F1EC' } },
     rightPriceScale: { borderColor: '#E2E0DA' },
     timeScale: { borderColor: '#E2E0DA', rightOffset: 4 },
@@ -695,8 +697,9 @@ function renderChart(a) {
     const box = $('lvTags');
     const pos = tags.map((t) => ({ ...t, y: candle.priceToCoordinate(t.price) })).filter((t) => t.y != null).sort((x, y) => x.y - y.y);
     // 標籤太近時往下推，避免重疊
-    for (let i = 1; i < pos.length; i++) if (pos[i].y - pos[i - 1].y < 20) pos[i].y = pos[i - 1].y + 20;
-    box.innerHTML = pos.map((t) => `<span class="${t.strong ? 'on' : ''}" style="top:${t.y - 10}px">${t.name}</span>`).join('');
+    const h = 20 * uiScale();
+    for (let i = 1; i < pos.length; i++) if (pos[i].y - pos[i - 1].y < h) pos[i].y = pos[i - 1].y + h;
+    box.innerHTML = pos.map((t) => `<span class="${t.strong ? 'on' : ''}" style="top:${t.y - h / 2}px">${t.name}</span>`).join('');
   };
   state.placeTags = placeTags;
   chart.timeScale().subscribeVisibleLogicalRangeChange(() => requestAnimationFrame(placeTags));
@@ -823,7 +826,7 @@ function drawEntity() {
   const col = palette();
   const chart = LC.createChart($('entChart'), {
     autoSize: true,
-    layout: { background: { type: 'solid', color: '#FFFFFF' }, textColor: '#5C5C5C', fontFamily: getComputedStyle(document.body).fontFamily, fontSize: 12 },
+    layout: { background: { type: 'solid', color: '#FFFFFF' }, textColor: '#5C5C5C', fontFamily: getComputedStyle(document.body).fontFamily, fontSize: Math.round(12 * uiScale()) },
     grid: { vertLines: { color: '#F3F1EC' }, horzLines: { color: '#F3F1EC' } },
     rightPriceScale: { borderColor: '#E2E0DA' },
     timeScale: { borderColor: '#E2E0DA' },
@@ -1880,3 +1883,6 @@ new MutationObserver(() => {
   glossQueued = true;
   requestAnimationFrame(() => { glossQueued = false; applyGloss(document.body); });
 }).observe(document.body, { childList: true, subtree: true });
+
+// 字體大小改變：圖表內的字也跟著放大（圖表本身不受整頁縮放影響，滑鼠位置才會對準）
+window.addEventListener('scalechange', () => { const a = state.an[state.cur]; if (a && !a.empty) renderChart(a); if (state.ent?.rows && $('entDlg').open) drawEntity(); });

@@ -1,3 +1,5 @@
+import { initScale } from './lib/ui.js';
+initScale();
 import { getWatchlist, getSettings, localKeys } from './lib/storage.js';
 import { loadStock, getStockInfo, loadEntity, loadDividends } from './lib/api.js';
 import { analyze, aggregate, levels, breakouts, sma, instDaily, priceDigits, weekBand, weekKeyOf } from './lib/indicators.js';

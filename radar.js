@@ -1,3 +1,5 @@
+import { initScale } from './lib/ui.js';
+initScale();
 // 情報雷達頁：全市場公告篩選、觀察清單、關鍵字、各類消息的事後影響
 import { getWatchlist, getObserve, setObserve, getKeywords, setKeywords, getSettings } from './lib/storage.js';
 import { getStockInfo } from './lib/api.js';

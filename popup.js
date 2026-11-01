@@ -1,3 +1,5 @@
+import { initScale } from './lib/ui.js';
+initScale();
 import { getWatchlist, getSettings } from './lib/storage.js';
 import { getCachedStock } from './lib/api.js';
 import { analyze, priceDigits } from './lib/indicators.js';

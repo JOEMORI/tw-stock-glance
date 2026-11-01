@@ -49,3 +49,10 @@ a:hover { color: var(--muted); }
 .pages .pg-badge:empty { display: none; }
 .pages .pg-note { font-size: 12px; color: var(--muted); white-space: nowrap; }
 @media print { .pages { display: none; } }
+
+/* 字體大小切換 */
+.scale-seg { display: inline-flex; align-items: stretch; border: 1px solid var(--pill); background: var(--card); }
+.scale-seg .scale-l { display: flex; align-items: center; padding: 0 8px; font-size: 12px; color: var(--muted); border-right: 1px solid var(--pill); }
+.scale-seg button { min-width: 40px; min-height: 36px; border: 0; background: var(--card); font-weight: 700; cursor: pointer; line-height: 1; }
+.scale-seg button + button { border-left: 1px solid var(--pill); }
+.scale-seg button[aria-pressed='true'] { background: var(--ink); color: #FFF; }
