@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>情報雷達</title>
+<link rel="icon" href="icons/icon32.png">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/dashboard.css">
+<link rel="stylesheet" href="styles/radar.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <span class="eyebrow">INTEL RADAR</span>
+      <h1>情報雷達 <span id="asof" class="num"></span></h1>
+    </div>
+    <div class="top-right">
+      <span id="status" role="status"></span>
+      <button id="refresh" class="btn" type="button">重新整理</button>
+    </div>
+  </header>
+  <nav class="pages" aria-label="主要頁面">
+    <a href="dashboard.html" data-page="dashboard"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-6"></path></svg><span class="pg-t"><b>收盤速覽</b><span>自選股 K 線、訊號、籌碼</span></span></a>
+    <a href="radar.html" data-page="radar" aria-current="page"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle><path d="M12 12 19 5"></path></svg><span class="pg-t"><b>情報雷達</b><span>全市場公告篩選、觀察清單</span></span><span id="radarBadge" class="pg-badge"></span></a>
+    <a href="weekly.html" data-page="weekly"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17"></rect><path d="M3 9h18M8 2v4M16 2v4M7 13h4M7 17h8"></path></svg><span class="pg-t"><b>每週報告</b><span>本週回顧、下週行事曆</span></span><span class="pg-note">週六更新</span></a>
+  </nav>
+
+  <div class="radar">
+    <main class="radar-main">
+      <section class="card">
+        <div class="row-between"><h2 class="sec-title">重要情報</h2><div id="daySeg" class="seg" role="group" aria-label="期間"><button type="button" data-v="1" aria-pressed="true">最新一天</button><button type="button" data-v="5" aria-pressed="false">近 5 天</button><button type="button" data-v="20" aria-pressed="false">近 20 天</button></div></div>
+        <p id="topNote" class="muted small"></p>
+        <ul id="top" class="intel"></ul>
+      </section>
+
+      <section class="card">
+        <div class="row-between"><h2 class="sec-title">依類別</h2><span class="muted small">含未達重要門檻的公告</span></div>
+        <div id="catSeg" class="cat-seg" role="group" aria-label="類別"></div>
+        <ul id="catList" class="intel compact"></ul>
+      </section>
+
+      <section class="card">
+        <div class="row-between"><h2 class="sec-title">哪類消息真的有影響</h2><span class="muted small">公告後股價漲跌（還原股價），累積後才有參考價值</span></div>
+        <div class="tbl-wrap"><table class="tbl num"><thead><tr><th class="l">類別</th><th>則數</th><th>反應日平均</th><th>5 日後平均</th><th>5 日後上漲比例</th><th>20 日後平均</th><th>公告前已先漲的比例</th></tr></thead><tbody id="impact"></tbody></table></div>
+        <p id="impactNote" class="muted small"></p>
+      </section>
+    </main>
+
+    <aside class="radar-side">
+      <section class="card">
+        <h2 class="sec-title">觀察清單</h2>
+        <p class="muted small">不是持股、但想追蹤的公司。公告會出現在這裡與速覽頁，價格每天更新。</p>
+        <form id="obsForm" class="add"><label for="obsInput" class="sr">加入觀察</label><input id="obsInput" type="text" list="stockList" autocomplete="off" placeholder="代號或名稱"><button class="btn" type="submit">加入</button></form>
+        <datalist id="stockList"></datalist>
+        <ul id="obs" class="obs"></ul>
+      </section>
+      <section class="card">
+        <h2 class="sec-title">關鍵字提醒</h2>
+        <div id="kws" class="kws"></div>
+        <form id="kwForm" class="add"><label for="kwInput" class="sr">新增關鍵字</label><input id="kwInput" type="text" autocomplete="off" placeholder="例如 CoWoS"><button class="btn" type="submit">加入</button></form>
+        <p class="muted small">全市場公告的主旨或內文出現時，列入重要情報；收盤更新時通知。</p>
+      </section>
+      <section class="card">
+        <h2 class="sec-title">篩選規則</h2>
+        <ul class="rules small">
+          <li>處分資產：解析處分利益，換算每股影響；每股 0.5 元以上列為重要。屬一次性業外收入，不代表本業變好。</li>
+          <li>庫藏股：買回股數佔股本 1% 以上。</li>
+          <li>增資減資：私募、現金增資、可轉債依稀釋比例；減資另標。</li>
+          <li>接單合約：合約金額 10 億以上。</li>
+          <li>內部人轉讓：董監、經理人、大股東申報轉讓佔股本 0.5% 以上。</li>
+          <li>澄清報導、更正財報：全部列入。</li>
+          <li>與自選股、觀察清單有關（本股、客戶、同業、同題材）或符合關鍵字的，一律列入。</li>
+          <li>公告前 5 日已漲 5% 以上，標「可能已反應」。</li>
+        </ul>
+        <p class="muted small">資料：證交所、櫃買中心開放資料。開放資料只保留最近一兩天，插件開始使用後才開始累積。</p>
+      </section>
+    </aside>
+  </div>
+</div>
+<script type="module" src="radar.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>台股收盤速覽</title>
+<link rel="stylesheet" href="styles/base.css">
+<style>
+  body { width: 320px; background: var(--card); }
+  .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 2px solid var(--ink); }
+  .head b { font-size: 15px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 56px; padding: 8px 14px; border: 0; border-bottom: 1px solid var(--line-soft); background: transparent; text-align: left; }
+  li button:hover { background: var(--hover); }
+  .r { display: flex; flex-direction: column; align-items: flex-end; }
+  .open { min-height: 32px; padding: 0 12px; border: 1px solid var(--pill); background: var(--card); }
+  .note { margin: 0; padding: 10px 14px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="head"><b>收盤速覽 <span id="asof" class="num muted small"></span></b><button id="open" class="open" type="button">開啟完整頁面</button></div>
+  <ul id="list"></ul>
+  <p id="note" class="note"></p>
+  <p class="note"><button id="radar" class="open" type="button">情報雷達</button> <button id="weekly" class="open" type="button">每週報告</button></p>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+.narrow { max-width: 960px; gap: 36px; }
+.wk-sec { display: flex; flex-direction: column; gap: 14px; }
+.wk-sec h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.summary { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; line-height: 1.7; }
+.table-box { background: var(--card); }
+.wk-details { display: flex; flex-direction: column; gap: 14px; }
+.wk-card { background: var(--card); border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.wk-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.wk-head .nm { font-size: 20px; font-weight: 700; }
+.wk-head .px { display: flex; align-items: flex-end; gap: 16px; }
+.wk-head .px b { font-size: 24px; font-weight: 500; }
+.wk-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.wk-cols > div { display: flex; flex-direction: column; gap: 8px; }
+.range { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+.range .track { position: relative; height: 6px; background: var(--line); border-radius: 3px; margin: 6px 0; }
+.range .track i { position: absolute; top: -6px; width: 2px; height: 18px; background: var(--ink); }
+.wk-rel { display: flex; flex-direction: column; gap: 14px; }
+.wk-rel h3 { margin: 0 0 6px; font-size: 15px; }
+.cal { background: var(--card); border: 1px solid var(--line); }
+.cal div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line-soft); font-size: 15px; }
+.cal div:last-child { border-bottom: 0; }
+.trend-up { color: var(--ink); }
+@media print {
+  .top-right { display: none; }
+  body { background: #FFFFFF; }
+  .wk-card, .table-box, .pick { break-inside: avoid; }
+}
+
+#report, #archive { display: flex; flex-direction: column; gap: 36px; }
+.wk-pick select { min-height: 36px; padding: 0 8px; border: 1px solid var(--pill); font: inherit; color: var(--ink); background: var(--card); }
+.check { font-size: 13px; }

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>台股收盤速覽</title>
+<link rel="icon" href="icons/icon32.png">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/dashboard.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <span class="eyebrow">DAILY CLOSE</span>
+      <h1>收盤速覽 <span id="asof" class="num"></span></h1>
+    </div>
+    <div class="top-right">
+      <span id="status" role="status"></span>
+      <form id="findForm" class="find" role="search">
+        <label for="findInput" class="sr">查詢股票</label>
+        <input id="findInput" type="search" list="stockList" autocomplete="off" placeholder="查詢代號或名稱">
+      </form>
+      <datalist id="stockList"></datalist>
+      <button id="refresh" class="btn" type="button">重新整理</button>
+      <details class="settings">
+        <summary>設定</summary>
+        <div class="settings-panel">
+          <label>漲跌顏色
+            <select id="setConvention">
+              <option value="tw">台灣慣例（紅漲綠跌）</option>
+              <option value="intl">國際慣例（綠漲紅跌）</option>
+            </select>
+          </label>
+          <label class="check"><input id="setNotify" type="checkbox"> 收盤更新後若有訊號就通知我</label>
+          <label>FinMind token（選填，可提高每小時查詢上限）
+            <input id="setToken" type="text" autocomplete="off" spellcheck="false" placeholder="未填也能使用">
+          </label>
+          <button id="saveSettings" class="btn" type="button">儲存設定</button>
+        </div>
+      </details>
+    </div>
+  </header>
+  <nav class="pages" aria-label="主要頁面">
+    <a href="dashboard.html" data-page="dashboard" aria-current="page"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-6"></path></svg><span class="pg-t"><b>收盤速覽</b><span>自選股 K 線、訊號、籌碼</span></span></a>
+    <a href="radar.html" data-page="radar"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle><path d="M12 12 19 5"></path></svg><span class="pg-t"><b>情報雷達</b><span>全市場公告篩選、觀察清單</span></span><span id="radarBadge" class="pg-badge"></span></a>
+    <a href="weekly.html" data-page="weekly"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17"></rect><path d="M3 9h18M8 2v4M16 2v4M7 13h4M7 17h8"></path></svg><span class="pg-t"><b>每週報告</b><span>本週回顧、下週行事曆</span></span><span class="pg-note">週六更新</span></a>
+  </nav>
+
+
+  <div id="market" class="mkt num" aria-label="大盤概況"></div>
+  <div id="market2" class="mkt mkt2 num" aria-label="匯率與原物料"></div>
+
+  <nav class="jump" aria-label="切換股票與區塊">
+    <div class="jump-left">
+      <button id="sideOpen" class="btn side-open" type="button" aria-controls="side">自選股 »</button>
+      <div id="pills" class="pills" aria-label="切換股票"></div>
+    </div>
+    <div class="jump-links">
+      <button type="button" data-jump="secChart">走勢</button><button type="button" data-jump="secScore">成績單</button><button type="button" data-jump="secRel">關聯</button><button type="button" data-jump="secCal">行事曆</button><button type="button" data-jump="secPeers">同業</button><button type="button" data-jump="secFund">籌碼與基本面</button><button type="button" data-jump="secNews">公告與新聞</button><button type="button" data-jump="secSectors">族群</button><button type="button" data-jump="secScreen">強勢股</button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside id="side" class="side" aria-label="自選股">
+      <div class="side-head">
+        <h2 class="sec-title">自選股</h2>
+        <button id="sideToggle" class="side-x" type="button" aria-label="收合自選股側欄">«</button>
+      </div>
+      <form id="addForm" class="add">
+        <label for="addInput" class="sr">新增股票代號</label>
+        <input id="addInput" type="text" list="stockList" autocomplete="off" placeholder="代號或名稱，例如 2330、玉晶光">
+        <button class="btn" type="submit">新增</button>
+      </form>
+      <span id="addMsg" class="muted small" role="status"></span>
+      <ul id="ovList" class="ov-list"></ul>
+      <p class="muted small side-note">只列今天新發生的訊號</p>
+      <div class="side-cal side-obs" id="obsWrap" hidden>
+        <h3 class="side-sub">觀察清單</h3>
+        <ul id="obsList" class="obs-mini"></ul>
+      </div>
+      <div class="side-cal">
+        <h3 class="side-sub">未來兩週</h3>
+        <ul id="sideCal" class="tl"></ul>
+      </div>
+    </aside>
+    <main id="main">
+      <section class="card" id="secChart">
+        <div class="row-between">
+          <div class="title-line">
+            <h2 id="sName">載入中</h2>
+            <span id="sMeta" class="muted num"></span>
+            <span id="sClose" class="num"></span>
+            <span id="sChg" class="num"></span>
+            <button id="sWatch" class="btn" type="button" hidden>＋ 加入自選股</button>
+            <button id="sObs" class="btn" type="button" hidden>＋ 觀察</button>
+          </div>
+          <div class="seg" role="group" aria-label="K 線週期">
+            <button type="button" data-p="d" aria-pressed="true">日K</button>
+            <button type="button" data-p="w" aria-pressed="false">週K</button>
+            <button type="button" data-p="m" aria-pressed="false">月K</button>
+          </div>
+        </div>
+        <div id="stats" class="stats num"></div>
+        <div id="attrib" class="attrib"></div>
+        <div class="chart-bar">
+          <div id="legend" class="legend num"></div>
+          <div class="tools">
+            <label class="cmp-pick"><span class="muted small">疊加比較</span><select id="cmpSel"></select></label>
+            <div class="ind-pick"><span class="muted small">副圖</span><div id="indSeg" class="seg" role="group" aria-label="技術指標"></div></div>
+          </div>
+        </div>
+        <div id="indLegend" class="legend num"></div>
+        <div id="cmpLegend" class="legend num"></div>
+        <div class="chart-wrap"><div id="chart" class="chart"></div><div id="lvTags" class="lv-tags" aria-hidden="true"></div></div>
+        <p id="chartNote" class="note"></p>
+        <div class="levels">
+          <div class="level"><span class="muted small">上方壓力</span><b id="lvRes" class="num">–</b><span id="lvRes2" class="muted small num"></span></div>
+          <div class="level"><span class="muted small">下方支撐</span><b id="lvSup" class="num">–</b><span id="lvSup2" class="muted small num"></span></div>
+          <div class="level"><span class="muted small">最近突破／跌破</span><b id="lvSig" class="num">–</b></div>
+        </div>
+        <div id="ladder" class="ladder"></div>
+        <ul id="highlights" class="highlights"></ul>
+        <div class="sig-row"><span class="muted small">今日新訊號</span><div id="signals" class="tags"></div></div>
+        <div class="sig-row"><span class="muted small">持續狀態</span><div id="states" class="tags"></div></div>
+        <div id="sigHist" class="sig-hist"></div>
+        <div id="review" class="review"></div>
+        <form id="alertForm" class="alert-form">
+          <span class="muted small">價位提醒</span>
+          <label>收盤高於 <input id="alertAbove" type="number" step="0.01" min="0" inputmode="decimal"></label>
+          <label>收盤低於 <input id="alertBelow" type="number" step="0.01" min="0" inputmode="decimal"></label>
+          <button class="btn" type="submit">儲存</button>
+          <button id="alertClear" class="btn" type="button">清除</button>
+          <span id="alertMsg" class="muted small" role="status"></span>
+        </form>
+      </section>
+
+      <section class="card" id="secScore">
+        <div class="row-between"><h3>指標成績單：哪些指標在你的股票上比較準</h3><div id="scoreSeg" class="seg" role="group" aria-label="範圍"><button type="button" data-v="all" aria-pressed="true">全部自選股</button><button type="button" data-v="cur" aria-pressed="false">本股</button></div></div>
+        <p id="scoreNote" class="muted small"></p>
+        <div class="tbl-wrap"><table class="tbl num score-tbl"><thead><tr><th class="l">指標</th><th>記錄次數</th><th>1 日後</th><th>5 日後</th><th>20 日後</th><th>5 日平均報酬</th><th>近 60 天</th><th>大盤漲日</th><th>大盤跌日</th><th id="scoreBtH">兩年回測</th><th class="l">評語</th></tr></thead><tbody id="scoreBody"></tbody></table></div>
+        <p class="muted small">每天收盤自動記下當時出現的指標，之後看 1、5、20 個交易日後股價方向是否和指標相同（漲跌 0.3% 以內算沒方向）。5 日後達 20 次才給評語：55% 以上「可參考」、45% 以下「不準」，其餘「沒有方向」。「近 60 天」和全部期間差 15 個百分點以上會標出變好或變差。「兩年回測」是用歷史股價回推的參考值，只有技術訊號才有。</p>
+      </section>
+      <section class="card" id="secRel">
+        <div class="row-between">
+          <h3>關聯脈絡</h3>
+          <span class="muted small">美股為前一晚收盤 · 相關係數為近 60 日報酬，括號內是一週前</span>
+        </div>
+        <div id="relations" class="rel-grid"></div>
+        <p id="relNote" class="note"></p>
+        <div class="rel-news-head"><h3>關聯新聞</h3><span class="muted small">近 10 天標題直接提到關聯公司的新聞</span></div>
+        <ul id="relNews" class="news"></ul>
+        <details class="rel-add">
+          <summary>新增關聯對象</summary>
+          <form id="relForm" class="rel-form">
+            <label>市場
+              <select id="relKind"><option value="tw">台股</option><option value="us">美股</option></select>
+            </label>
+            <label>代號<input id="relId" type="text" autocomplete="off" placeholder="例如 2330 或 NVDA" required></label>
+            <label>名稱<input id="relName" type="text" autocomplete="off" placeholder="例如 台積電"></label>
+            <label>關係<input id="relRel" type="text" autocomplete="off" placeholder="例如 客戶、競爭對手" required></label>
+            <label class="wide">為什麼相關（選填）<input id="relWhy" type="text" autocomplete="off"></label>
+            <button class="btn" type="submit">加入</button>
+          </form>
+          <p id="relMsg" class="note" role="status"></p>
+        </details>
+      </section>
+
+      <section class="card" id="secCal">
+        <div class="row-between">
+          <h3>關聯行事曆</h3>
+          <span class="muted small">本股與關聯公司未來 45 天的事件</span>
+        </div>
+        <div id="calendar" class="cal-list"></div>
+        <p id="calNote" class="note"></p>
+        <details class="rel-add">
+          <summary>新增事件</summary>
+          <form id="calForm" class="rel-form">
+            <label>日期<input id="calDate" type="date" required></label>
+            <label>對象<input id="calWho" type="text" autocomplete="off" placeholder="留空代表本股"></label>
+            <label class="wide">事件<input id="calTitle" type="text" autocomplete="off" placeholder="例如 Marvell 財報、股東會" required></label>
+            <button class="btn" type="submit">加入</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="card" id="secPeers">
+        <div class="row-between">
+          <h3>同業比較</h3>
+          <div id="peerSort" class="seg" role="group" aria-label="同業排序"></div>
+        </div>
+        <span id="peerNote" class="muted small"></span>
+        <div class="table-box scroll-box">
+          <table class="tbl num">
+            <thead><tr><th class="l">股票</th><th>收盤</th><th>今日</th><th>5 日</th><th>20 日</th><th>量比</th><th>外資</th><th>相關</th></tr></thead>
+            <tbody id="peers"></tbody>
+          </table>
+        </div>
+        
+      </section>
+
+      <div class="grid" id="secFund">
+        <section class="card">
+          <div class="row-between"><h3>三大法人 近 10 日（張）</h3><span id="instToday" class="num small"></span></div>
+          <div id="instBars" class="bars"></div>
+          <div id="instSum"></div>
+        </section>
+        <section class="card">
+          <h3>融資融券</h3>
+          <div id="margin"></div>
+        </section>
+        <section class="card">
+          <div class="row-between"><h3>季財報</h3><span id="finDate" class="muted small num"></span></div>
+          <div id="financials"></div>
+        </section>
+        <section class="card">
+          <div class="row-between"><h3>估值位置</h3><span class="muted small">近三年區間</span></div>
+          <div id="valuation"></div>
+        </section>
+        <section class="card">
+          <div class="row-between"><h3>大戶持股</h3><span id="shDate" class="muted small num"></span></div>
+          <div id="shareholding"></div>
+        </section>
+        <section class="card">
+          <div class="row-between"><h3>月營收 近 12 個月</h3><span id="revYoy" class="num small"></span></div>
+          <div id="revBars" class="rev"></div>
+          <div class="row-between muted small num"><span id="revFrom"></span><span id="revTo"></span></div>
+          <span id="revNote" class="muted small"></span>
+        </section>
+      </div>
+
+      <section class="card" id="secNews">
+        <div class="row-between"><h3>公司公告（重大訊息）</h3><span class="muted small">證交所、櫃買中心公布，近 45 天</span></div>
+        <ul id="anns" class="anns"></ul>
+        <div class="row-between" style="margin-top:18px"><h3>近期新聞</h3><div id="newsSeg" class="seg" role="group" aria-label="新聞範圍"><button type="button" data-v="cur" aria-pressed="true">本股</button><button type="button" data-v="all" aria-pressed="false">全部自選股</button></div></div>
+        <p id="newsNote" class="muted small"></p>
+        <ul id="news" class="news"></ul>
+      </section>
+    </main>
+  </div>
+
+  <section class="card" id="secSectors">
+    <div class="row-between">
+      <div>
+        <h2 class="sec-title">族群強弱</h2>
+        <span id="secNote" class="muted small"></span>
+      </div>
+      <div class="row-gap">
+        <div id="secMode" class="seg" role="group" aria-label="族群分類"></div>
+        <div id="secPeriod" class="seg" role="group" aria-label="排名期間"></div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div id="secList" class="sec-list"></div>
+      <div class="sec-members">
+        <h3 id="secSelName"></h3>
+        <div class="table-box">
+          <table class="tbl num">
+            <thead><tr><th class="l">股票</th><th>收盤</th><th>今日</th><th>5 日</th><th>20 日</th><th>量比</th><th>外資</th></tr></thead>
+            <tbody id="secMembers"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="secScreen">
+    <div>
+      <h2 class="sec-title">強勢股篩選</h2>
+      <span id="screenNote" class="muted small"></span>
+    </div>
+    <div id="picks" class="pick-grid"></div>
+    <div id="nearWrap">
+      <h3>接近條件</h3>
+      <div id="near" class="pick-grid"></div>
+    </div>
+    <p class="note">篩選結果依條件自動產生，只代表近期走勢符合條件，不代表未來會續漲，也不構成投資建議。</p>
+  </section>
+
+  <footer class="foot">
+    資料來源：FinMind（整理自證交所、櫃買中心、公開資訊觀測站）。K 線圖使用 TradingView Lightweight Charts。
+    壓力、支撐與訊號為公式計算結果，僅供參考，不構成投資建議。
+  </footer>
+</div>
+<script src="vendor/lightweight-charts.standalone.production.js"></script>
+<script type="module" src="dashboard.js"></script>
+  <dialog id="entDlg" class="ent-dlg">
+    <div class="ent-head">
+      <div><h2 id="entName"></h2><div id="entQuote" class="num"></div></div>
+      <div class="ent-ctl"><div id="entSeg" class="seg" role="group" aria-label="期間"></div><button id="entClose" class="btn" type="button" aria-label="關閉">關閉</button></div>
+    </div>
+    <div id="entStats" class="stats num"></div>
+    <div id="entChart" class="ent-chart"></div>
+    <p id="entNote" class="note"></p>
+    <h3>相關新聞</h3>
+    <ul id="entNews" class="news"></ul>
+  </dialog>
+</body>
+</html>

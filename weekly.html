@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每週報告</title>
+<link rel="icon" href="icons/icon32.png">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/dashboard.css">
+<link rel="stylesheet" href="styles/weekly.css">
+</head>
+<body>
+<div class="wrap narrow">
+  <header class="top">
+    <div>
+      <span id="wkLabel" class="eyebrow num">WEEKLY REPORT</span>
+      <h1>每週報告</h1>
+      <span id="wkRange" class="muted num"></span>
+    </div>
+    <div class="top-right">
+      <span id="status" role="status"></span>
+      <label class="wk-pick muted small">週次 <select id="wkSel"></select></label>
+      <button id="print" class="btn" type="button">列印或存 PDF</button>
+    </div>
+  </header>
+  <nav class="pages" aria-label="主要頁面">
+    <a href="dashboard.html" data-page="dashboard"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 5-6"></path></svg><span class="pg-t"><b>收盤速覽</b><span>自選股 K 線、訊號、籌碼</span></span></a>
+    <a href="radar.html" data-page="radar"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle><path d="M12 12 19 5"></path></svg><span class="pg-t"><b>情報雷達</b><span>全市場公告篩選、觀察清單</span></span><span id="radarBadge" class="pg-badge"></span></a>
+    <a href="weekly.html" data-page="weekly" aria-current="page"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17"></rect><path d="M3 9h18M8 2v4M16 2v4M7 13h4M7 17h8"></path></svg><span class="pg-t"><b>每週報告</b><span>本週回顧、下週行事曆</span></span><span class="pg-note">週六更新</span></a>
+  </nav>
+
+
+  <div id="report">
+  <section class="wk-sec">
+    <h2>本週摘要</h2>
+    <ol id="summary" class="summary"></ol>
+  </section>
+
+  <section class="wk-sec">
+    <h2>持股總覽</h2>
+    <div class="table-box">
+      <table class="tbl num">
+        <thead><tr><th class="l">股票</th><th>週收盤</th><th>週漲跌</th><th>週量／上週</th><th>外資本週（張）</th><th>週線壓力</th><th>週線支撐</th><th>千張大戶</th></tr></thead>
+        <tbody id="overview"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wk-sec">
+    <h2>個股細節</h2>
+    <div id="details" class="wk-details"></div>
+  </section>
+
+  <section class="wk-sec">
+    <h2>本週關聯脈絡</h2>
+    <p class="note">本週漲跌為關聯對象近 5 個交易日；相關係數為與持股近 60 日報酬，箭頭表示比上週變強或變弱。</p>
+    <div id="relations" class="wk-rel"></div>
+  </section>
+
+  <section class="wk-sec">
+    <h2>族群輪動（題材族群）</h2>
+    <div class="table-box">
+      <table class="tbl num">
+        <thead><tr><th>排名</th><th class="l">族群</th><th>本週</th><th>上週排名</th><th class="l">領漲股</th></tr></thead>
+        <tbody id="rotation"></tbody>
+      </table>
+    </div>
+    <p id="rotNote" class="note"></p>
+  </section>
+
+  <section class="wk-sec">
+    <h2>強勢股篩選（週末）</h2>
+    <p id="screenNote" class="note"></p>
+    <div id="picks" class="pick-grid"></div>
+  </section>
+
+  <section class="wk-sec">
+    <h2>下週行事曆</h2>
+    <div id="calendar" class="cal"></div>
+  </section>
+
+  </div>
+  <div id="archive" hidden></div>
+
+  <footer class="foot">
+    資料來源：FinMind、證交所、櫃買中心。下週波動區間依近 20 日波動度估算，約 68% 機率落在範圍內，不是漲跌方向的預測。
+    本報告為資料整理，不構成投資建議。
+  </footer>
+</div>
+<script type="module" src="weekly.js"></script>
+</body>
+</html>

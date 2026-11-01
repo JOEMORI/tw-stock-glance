@@ -1,0 +1,51 @@
+@font-face { font-family: 'Inter'; src: url('../fonts/inter-latin-400-normal.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../fonts/inter-latin-500-normal.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../fonts/inter-latin-600-normal.woff2') format('woff2'); font-weight: 600 700; font-display: swap; }
+
+:root {
+  --ground: #F7F6F2;
+  --card: #FFFFFF;
+  --ink: #1A1A1A;
+  --muted: #5C5C5C;
+  --line: #E2E0DA;
+  --line-soft: #EFEDE8;
+  --pill: #CFCBC2;
+  --hover: #EFEDE8;
+  --up: #B83227;
+  --down: #1E7B4A;
+  --ma1: #B45309;
+  --ma2: #2557B8;
+  --ma3: #7A3EC2;
+  --font: 'Inter', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
+}
+:root[data-convention='intl'] { --up: #1E7B4A; --down: #B83227; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+/* 數字一律等寬對齊；Inter 的 0 沒有中間的點或斜線 */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--ink); }
+a:hover { color: var(--muted); }
+:focus-visible { outline: 2px solid var(--ma2); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* 三個主要頁面的大按鈕 */
+.pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
+.pages a { display: flex; gap: 14px; align-items: center; padding: 14px 18px; min-height: 68px; border: 1px solid var(--pill); background: var(--card); color: var(--ink); text-decoration: none; }
+.pages a:hover { border-color: var(--ink); }
+.pages a[aria-current='page'] { background: var(--ink); color: #F5F4F0; border-color: var(--ink); }
+.pages a svg { flex: 0 0 auto; }
+.pages .pg-t { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pages .pg-t b { font-size: 18px; }
+.pages .pg-t span { font-size: 13px; color: var(--muted); }
+.pages a[aria-current='page'] .pg-t span { color: #B9B5AC; }
+.pages .pg-badge { font-size: 13px; font-weight: 700; color: #FFF; background: #C0392B; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.pages .pg-badge:empty { display: none; }
+.pages .pg-note { font-size: 12px; color: var(--muted); white-space: nowrap; }
+@media print { .pages { display: none; } }
