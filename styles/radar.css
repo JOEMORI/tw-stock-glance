@@ -12,7 +12,7 @@
 .intel .ttl .nm { font-weight: 700; color: var(--ink); text-decoration: underline; text-decoration-color: var(--pill); text-underline-offset: 3px; background: none; border: 0; padding: 0; font: inherit; font-weight: 700; cursor: pointer; }
 .intel .meta { font-size: 13px; color: var(--muted); line-height: 1.6; }
 .intel .flags { display: flex; flex-wrap: wrap; gap: 6px; }
-.intel .flag { font-size: 12px; padding: 1px 8px; border: 1px solid var(--pill); border-radius: 999px; }
+.intel .flag { font-size: 12px; padding: 1px 8px; border: 1px solid var(--pill); }
 .intel .flag.link { background: #EEF2FA; color: #1F4E99; border-color: #C9D6EE; }
 .intel .flag.warn { background: #FFF3E6; color: #8A4B10; border-color: #F0C99A; }
 .intel .flag.kw { background: var(--ink); color: #FFF; border-color: var(--ink); }
@@ -28,7 +28,7 @@
 .obs li { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 9px 0; border-top: 1px solid var(--line-soft); font-size: 14px; }
 .obs .x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; }
 .kws { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.kws button { font: inherit; font-size: 13px; padding: 3px 10px; border: 1px solid var(--pill); border-radius: 999px; background: var(--card); cursor: pointer; }
+.kws button { font: inherit; font-size: 13px; padding: 3px 10px; border: 1px solid var(--pill); background: var(--card); cursor: pointer; }
 .rules { margin: 6px 0; padding-left: 18px; line-height: 1.6; color: var(--ink); }
 .add { display: flex; gap: 6px; margin-top: 8px; }
 .add input { flex: 1; min-height: 36px; padding: 0 10px; border: 1px solid var(--pill); font: inherit; }
@@ -51,3 +51,22 @@
 .tr-m { line-height: 1.7; }
 .tr-mv { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
 .linklike { font: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--pill); text-underline-offset: 3px; color: var(--ink); }
+/* 題材雷達精簡版 */
+.tr-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.tr-t { gap: 6px; }
+.tr-h b { font-size: 16px; }
+.tr-r { font-size: 14px; }
+.tr-on { display: flex; flex-wrap: wrap; gap: 6px; }
+.tr-on span { font-size: 13px; padding: 2px 8px; background: #EAF4EE; color: #1F5E3A; }
+.tr-on b { font-weight: 600; }
+.tr-ptt, .tr-pttd summary, .tr-mem summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+.tr-ptt { text-decoration: none; }
+.tr-pttd ul { margin: 6px 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.tr-pttd > a { font-size: 13px; }
+.tr-mem div { font-size: 13px; line-height: 1.7; margin-top: 4px; }
+.tr-calm { margin-top: 12px; }
+.tr-calm summary { cursor: pointer; font-size: 14px; color: var(--muted); }
+.tr-calm table { margin-top: 6px; }
+.tr-dots { display: inline-flex; gap: 3px; }
+.tr-dots i { font-style: normal; width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; border: 1px solid var(--pill); color: var(--muted); }
+.tr-dots i.on { background: #2F7D4F; border-color: #2F7D4F; color: #FFF; }

@@ -13,6 +13,7 @@ import { CATS, buildIntel, fetchInsider, impactText } from './lib/intel.js';
 import { $, esc, fmtP, sPct, tone, md } from './lib/format.js';
 import { loadThemes, stageHTML, moversHTML, clustersHTML, validHTML, howHTML } from './lib/theme-ui.js';
 import { THEME_DEFS } from './lib/themes.js';
+import { pttThemes } from './lib/ptt.js';
 import { SKIP_INDUSTRY } from './lib/sectors.js';
 
 const state = { info: {}, watch: [], observe: [], kws: [], market: null, items: [], days: 1, cat: 'sell', early: {} };
@@ -263,7 +264,17 @@ async function renderThemes() {
   const themeOf = (id) => THEME_DEFS.find((t) => t.ids.includes(id))?.name;
   const industryOf = (id) => (state.info[id]?.industries || []).find((c) => !SKIP_INDUSTRY.test(c));
   const tab = state.trTab || 'stage';
-  $('trBody').innerHTML = tab === 'movers' ? moversHTML(d, state.info, trLink, themeOf, industryOf) : tab === 'clusters' ? clustersHTML(d, state.info, trLink) : tab === 'valid' ? validHTML(d) : tab === 'how' ? howHTML() : stageHTML(d, state.info, trLink);
+  $('trBody').innerHTML = tab === 'movers' ? moversHTML(d, state.info, trLink, themeOf, industryOf) : tab === 'clusters' ? clustersHTML(d, state.info, trLink) : tab === 'valid' ? validHTML(d) : tab === 'how' ? howHTML() : stageHTML(d, state.info, trLink, state.ptt);
+  if (tab === 'stage' && state.ptt === undefined) loadPtt();
+}
+// PTT 從你的瀏覽器直接讀（GitHub 那邊被擋），快取 3 小時；讀不到就只顯示搜尋連結。
+async function loadPtt() {
+  state.ptt = null;
+  try {
+    const names = Object.fromEntries(Object.entries(state.info || {}).map(([k, v]) => [k, v.name]));
+    state.ptt = await pttThemes(THEME_DEFS, names);
+  } catch (e) { state.ptt = null; }
+  if ((state.trTab || 'stage') === 'stage') renderThemes();
 }
 $('trTabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-tr]');
