@@ -14,6 +14,7 @@ import { $, esc, fmtP, sPct, tone, md } from './lib/format.js';
 import { loadThemes, stageHTML, moversHTML, clustersHTML, validHTML, howHTML } from './lib/theme-ui.js';
 import { THEME_DEFS } from './lib/themes.js';
 import { pttThemes } from './lib/ptt.js';
+import { whisperWatch } from './lib/whisper.js';
 import { SKIP_INDUSTRY } from './lib/sectors.js';
 
 const state = { info: {}, watch: [], observe: [], kws: [], market: null, items: [], days: 1, cat: 'sell', early: {} };
@@ -225,6 +226,7 @@ async function addObserve(id) {
   await setObserve(state.observe);
   state.items = state.items.map((x) => (x.id === id && !x.links.includes('觀察清單') ? { ...x, links: [...x.links, '觀察清單'], important: true } : x));
   render();
+  renderWatch();
 }
 function resolve(text) {
   const t = String(text || '').trim();
@@ -235,6 +237,8 @@ function resolve(text) {
 }
 
 document.addEventListener('click', async (e) => {
+  const w = e.target.closest('[data-ww]');
+  if (w && !e.target.closest('a, button')) { state.wwOpen = state.wwOpen === w.dataset.ww ? null : w.dataset.ww; return renderWatch(); }
   const o = e.target.closest('[data-open]');
   if (o) return open(o.dataset.open);
   const a = e.target.closest('[data-obs]');
@@ -288,8 +292,72 @@ $('trTabs').addEventListener('click', (e) => {
   renderThemes();
 });
 
+// ---------- 今天可以注意 ----------
+async function loadWatch(force = false) {
+  if (!Object.keys(state.info).length || !state.market) return;
+  $('wwNote').textContent = '掃描中…';
+  $('wwRefresh').disabled = true;
+  try {
+    state.ww = await whisperWatch({ info: state.info, market: state.market, themes: state.themes, force });
+  } catch (e) { state.ww = { err: e.message }; }
+  $('wwRefresh').disabled = false;
+  renderWatch();
+}
+$('wwRefresh').addEventListener('click', () => loadWatch(true));
+const pctSpan = (v, d = 1) => (v == null ? '–' : `<span class="${tone(v)}">${sPct(v, d)}</span>`);
+const cut = (t, n = 46) => (t.length > n ? t.slice(0, n) + '…' : t);
+function renderWatch() {
+  const w = state.ww;
+  if (!w) return;
+  if (w.err) { $('wwNote').textContent = ''; $('wwBody').innerHTML = `<p class="empty">${esc(w.err)}，稍後按「重新掃描」再試。</p>`; return; }
+  $('wwNote').textContent = `PTT ${w.nPtt} 篇 · 新聞 ${w.nNews} 則 · ${new Date(w.at).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`;
+  if (!w.top.length) { $('wwBody').innerHTML = '<p class="empty">近 3 天沒有明顯開始被討論的個股</p>'; return; }
+  const P = state.market?.prices || [];
+  const last = P[P.length - 1] || {};
+  const row = (c) => {
+    const m = c.m;
+    const why = [
+      m.pick ? `PTT 標的／情報 ${m.pick}` : '',
+      m.ptt ? `PTT 討論 ${m.ptt}` : '',
+      m.news ? `新聞 ${m.news}` : '',
+      m.yoy != null ? `營收年增 ${Math.round(m.yoy)}%` : '',
+      c.fresh ? '<b>新出現</b>' : '',
+      c.fb >= 3 ? `外資 ${c.fb}/${c.fDays} 天買超` : '',
+      c.p.r20 != null ? `20 日 ${sPct(c.p.r20, 0)}` : '',
+    ].filter(Boolean).join(' · ');
+    const th = c.themes[0];
+    const isOpen = state.wwOpen === c.id;
+    return `<li class="ww-row${isOpen ? ' open' : ''}" data-ww="${c.id}">
+      <div class="ww-main"><span class="ww-nm"><b>${esc(c.name)}</b> <span class="muted">${c.id}</span>${th ? ` <span class="ww-th">${esc(th.name)}${th.stage !== '平靜' ? ' · ' + th.stage : ''}</span>` : ''}</span>
+        <span class="num"><b>${fmtP(c.p.close)}</b> ${pctSpan(c.p.r1, 2)}</span><span class="ww-arr" aria-hidden="true">${isOpen ? '▾' : '▸'}</span></div>
+      <div class="ww-why">${why}</div>
+      ${isOpen ? detail(c, last) : ''}
+    </li>`;
+  };
+  const detail = (c, last) => {
+    const src = c.m.items.slice().sort((a, b) => (b.src === 'ptt' && /標的|情報/.test(b.tag)) - (a.src === 'ptt' && /標的|情報/.test(a.tag)) || (a.date < b.date ? 1 : -1)).slice(0, 3);
+    const peers = [...new Set(c.themes.flatMap((t) => (THEME_DEFS.find((d) => d.name === t.name)?.ids || [])))].filter((id) => id !== c.id && last[id]).slice(0, 6);
+    const us = [...new Set(c.themes.flatMap((t) => THEME_DEFS.find((d) => d.name === t.name)?.us || []))];
+    const usm = c.themes.map((t) => state.themes?.themes.find((x) => x.name === t.name)?.usm?.r1).find((v) => v != null);
+    const chip = (id) => `<button type="button" class="ww-chip" data-open="${id}">${esc(nameOf(id))} ${pctSpan(last[id] ? last[id][2] * 100 : null)}</button>`;
+    const rel = [
+      peers.length ? `<div><span class="ww-k">同題材</span>${peers.map(chip).join('')}</div>` : '',
+      c.co.length ? `<div><span class="ww-k">一起被提到</span>${c.co.filter((id) => last[id]).map(chip).join('')}</div>` : '',
+      us.length ? `<div><span class="ww-k">美股對照</span><span class="ww-us">${us.join('、')}${usm != null ? `（昨晚平均 ${pctSpan(usm)}）` : ''}</span></div>` : '',
+    ].join('');
+    return `<div class="ww-det">
+      <ul class="ww-src">${src.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(x.title)}">${esc(cut(x.title))}</a><span class="muted">${x.src === 'ptt' ? 'PTT' : esc(x.source || '新聞')} ${md(x.date)}</span></li>`).join('')}</ul>
+      ${rel ? `<div class="ww-rel">${rel}</div>` : ''}
+      <div class="ww-act"><button type="button" class="btn small" data-obs="${c.id}"${state.observe.includes(c.id) ? ' disabled' : ''}>${state.observe.includes(c.id) ? '已在觀察清單' : '加入觀察'}</button><button type="button" class="btn small" data-open="${c.id}">看個股 ›</button></div>
+    </div>`;
+  };
+  const v = w.valid;
+  const vNote = v ? `過去名單 ${v.n} 檔次，5 個交易日後平均 ${sPct(v.avg, 1)}，上漲比例 ${Math.round(v.up * 100)}%${v.base != null ? `；同期全部股票平均 ${sPct(v.base, 1)}` : ''}。` : `名單每天自動記錄（已 ${w.logDays} 天），第一批名單滿 5 個交易日後，這裡會顯示它們後來的漲跌，用來判斷準不準。`;
+  $('wwBody').innerHTML = `<ul class="ww-list">${w.top.map(row).join('')}</ul><p class="muted small ww-v">${vNote}</p>`;
+}
+
 async function init() {
-  loadThemes(async (u) => { const r = await fetch(u, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => { state.themes = d; renderThemes(); });
+  loadThemes(async (u) => { const r = await fetch(u, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => { state.themes = d; renderThemes(); if (state.ww && !state.ww.err) loadWatch(); });
   const { convention } = await getSettings();
   document.documentElement.dataset.convention = convention;
   [state.watch, state.observe, state.kws] = await Promise.all([getWatchlist(), getObserve(), getKeywords()]);
@@ -297,6 +365,7 @@ async function init() {
   renderThemes();
   $('stockList').innerHTML = Object.keys(state.info).filter((id) => /^\d{4}$/.test(id)).map((id) => `<option value="${id} ${esc(state.info[id].name)}"></option>`).join('');
   state.market = await readMarket();
+  loadWatch();
   await build();
   // 全市場行情若不是最新，背景補齊後重算股價反應
   ensureMarket().then((m) => { if (m.dates.at(-1) !== state.market?.dates?.at(-1)) { state.market = m; build(); } }).catch(() => {});
