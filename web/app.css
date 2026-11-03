@@ -89,3 +89,21 @@ details.card[open] > summary { margin-bottom: 8px; }
 .linklike { border: 0; background: none; padding: 0; color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-color: var(--pill); text-underline-offset: 3px; }
 .toast { position: fixed; left: 12px; right: 12px; bottom: calc(70px + env(safe-area-inset-bottom)); background: var(--ink); color: #FFF; padding: 10px 12px; font-size: .9rem; z-index: 9; }
 .toast:empty { display: none; }
+/* 題材雷達（手機） */
+.trm .tr-grid { display: flex; flex-direction: column; gap: 10px; }
+.trm .tr-t, .trm .tr-g { background: var(--card); border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.trm .tr-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.trm .tr-st { color: #FFF; font-size: .75rem; font-weight: 700; padding: 1px 8px; }
+.trm .tr-sig { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+.trm .tr-s { display: flex; align-items: center; gap: 5px; font-size: .8rem; color: var(--muted); }
+.trm .tr-s i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #B9B5AC; flex: 0 0 auto; }
+.trm .tr-s.on { color: var(--ink); font-weight: 700; }
+.trm .tr-s.on i { background: #2F7D4F; border-color: #2F7D4F; }
+.trm .tr-s small { margin-left: auto; font-weight: 400; color: var(--muted); }
+.trm .tr-m, .trm .tr-r { font-size: .85rem; line-height: 1.6; }
+.trm .tr-mv { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .9rem; }
+.trm table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.trm th, .trm td { padding: 6px 4px; border-bottom: 1px solid var(--hover); text-align: right; }
+.trm .l { text-align: left; }
+.trm .tbl-wrap { overflow-x: auto; }
+.trm h3 { font-size: .95rem; margin: 12px 0 6px; }

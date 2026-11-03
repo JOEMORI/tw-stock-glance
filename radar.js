@@ -11,6 +11,9 @@ import { THEMES } from './lib/sectors.js';
 import { googleNews } from './lib/gnews.js';
 import { CATS, buildIntel, fetchInsider, impactText } from './lib/intel.js';
 import { $, esc, fmtP, sPct, tone, md } from './lib/format.js';
+import { loadThemes, stageHTML, moversHTML, clustersHTML, validHTML, howHTML } from './lib/theme-ui.js';
+import { THEME_DEFS } from './lib/themes.js';
+import { SKIP_INDUSTRY } from './lib/sectors.js';
 
 const state = { info: {}, watch: [], observe: [], kws: [], market: null, items: [], days: 1, cat: 'sell', early: {} };
 const nameOf = (id) => state.info[id]?.name || id;
@@ -251,11 +254,32 @@ $('refresh').addEventListener('click', async () => {
   build();
 });
 
+// ---------- 題材雷達 ----------
+const trLink = (id, name) => `<button type="button" class="nm linklike" data-open="${id}">${esc(name)}</button>`;
+async function renderThemes() {
+  const d = state.themes;
+  if (!d) { $('trBody').innerHTML = '<p class="empty">題材資料尚未產生（每個交易日 17:05 由 GitHub 整理），或暫時連不上。</p>'; return; }
+  $('trNote').textContent = `資料日期 ${md(d.date)} · 更新於 ${new Date(d.builtAt).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+  const themeOf = (id) => THEME_DEFS.find((t) => t.ids.includes(id))?.name;
+  const industryOf = (id) => (state.info[id]?.industries || []).find((c) => !SKIP_INDUSTRY.test(c));
+  const tab = state.trTab || 'stage';
+  $('trBody').innerHTML = tab === 'movers' ? moversHTML(d, state.info, trLink, themeOf, industryOf) : tab === 'clusters' ? clustersHTML(d, state.info, trLink) : tab === 'valid' ? validHTML(d) : tab === 'how' ? howHTML() : stageHTML(d, state.info, trLink);
+}
+$('trTabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tr]');
+  if (!b) return;
+  state.trTab = b.dataset.tr;
+  $('trTabs').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  renderThemes();
+});
+
 async function init() {
+  loadThemes(async (u) => { const r = await fetch(u, { cache: 'no-cache' }); if (!r.ok) throw new Error(r.status); return r.json(); }).then((d) => { state.themes = d; renderThemes(); });
   const { convention } = await getSettings();
   document.documentElement.dataset.convention = convention;
   [state.watch, state.observe, state.kws] = await Promise.all([getWatchlist(), getObserve(), getKeywords()]);
   try { state.info = await getStockInfo(); } catch (e) { state.info = {}; }
+  renderThemes();
   $('stockList').innerHTML = Object.keys(state.info).filter((id) => /^\d{4}$/.test(id)).map((id) => `<option value="${id} ${esc(state.info[id].name)}"></option>`).join('');
   state.market = await readMarket();
   await build();

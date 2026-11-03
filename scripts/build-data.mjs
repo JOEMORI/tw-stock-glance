@@ -75,4 +75,26 @@ for (const f of fs.readdirSync(path.join(OUT, 'anns'))) fs.unlinkSync(path.join(
 for (const [id, l] of Object.entries(anns || {})) write(`anns/${id}.json`, l.map(({ at, ...x }) => x));
 write('calendar.json', { confs: confs || {}, exr: exr || {} });
 if (sh) write('tdcc.json', sh);
+// 題材雷達（新聞、PTT、營收、籌碼、美股、異動、新族群）
+const { themeRadar } = await import('./theme-radar.mjs');
+const { getStockInfo } = await import('../lib/api.js');
+// 快取遺失時（例如 GitHub 清掉），從上次發布的網站把歷史紀錄拿回來
+if (!(await chrome.storage.local.get('tr:log'))['tr:log']) {
+  try {
+    const r = await fetch('https://joemori.github.io/tw-stock-glance/data/themes-log.json');
+    if (r.ok) { const j = await r.json(); await chrome.storage.local.set({ 'tr:log': j.log || {}, 'tr:movers': j.movers || {} }); console.log('已從網站還原題材紀錄'); }
+  } catch (e) { /* 第一次執行 */ }
+}
+if (market?.dates?.length) {
+  const info = await step('股票名稱', () => getStockInfo());
+  const names = Object.fromEntries(Object.entries(info || {}).map(([id, v]) => [id, v.name]));
+  const tr = await step('題材雷達', () => themeRadar({ market, sh, names }));
+  if (tr) {
+    const used = new Set([...tr.themes.flatMap((t) => t.ids), ...tr.movers.map((x) => x.id), ...tr.clusters.flatMap((c) => c.ids)]);
+    tr.names = Object.fromEntries([...used].map((id) => [id, names[id] || id]));
+    write('themes.json', tr);
+    const st = await chrome.storage.local.get(['tr:log', 'tr:movers']);
+    write('themes-log.json', { log: st['tr:log'] || {}, movers: st['tr:movers'] || {} });
+  }
+}
 console.log(`輸出完成：${latest}，${Object.keys(closes).length} 檔，情報 ${intel.length} 則`);

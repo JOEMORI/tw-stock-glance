@@ -10,6 +10,9 @@ import { getRelations, relationMetrics } from './lib/relations.js';
 import { THEMES } from './lib/sectors.js';
 import { CATS, impactText } from './lib/intel.js';
 import { reviewStock } from './lib/review.js';
+import { loadThemes, stageHTML, moversHTML, clustersHTML, validHTML, howHTML } from './lib/theme-ui.js';
+import { THEME_DEFS } from './lib/themes.js';
+import { SKIP_INDUSTRY } from './lib/sectors.js';
 import { esc, fmtP, fmtInt, sInt, sPct, tone, arrow, md } from './lib/format.js';
 
 const $ = (id) => document.getElementById(id);
@@ -295,8 +298,22 @@ function linksFor(id) {
   }
   return [...new Set(out)];
 }
+const RTABS = [['themes', '題材'], ['movers', '放量'], ['clusters', '新族群'], ['valid', '驗證'], ['intel', '公告']];
 async function viewRadar() {
   setHead('INTEL RADAR', '情報雷達');
+  const tab = S.rTab || 'themes';
+  const tabs = `<div class="chips" role="tablist">${RTABS.map(([k, l]) => `<button type="button" data-rt="${k}" aria-pressed="${tab === k}">${l}</button>`).join('')}</div>`;
+  if (tab !== 'intel') {
+    if (!S.themes) S.themes = await loadThemes(() => getJSON('data/themes.json'));
+    const d = S.themes;
+    const link = (id, name) => `<a href="#/s/${id}">${esc(name)}</a>`;
+    const themeOf = (id) => THEME_DEFS.find((t) => t.ids.includes(id))?.name;
+    const industryOf = (id) => (S.info[id]?.industries || []).find((c) => !SKIP_INDUSTRY.test(c));
+    const body = !d ? '<p class="empty">題材資料尚未產生</p>' : tab === 'movers' ? moversHTML(d, S.info, link, themeOf, industryOf) : tab === 'clusters' ? clustersHTML(d, S.info, link) : tab === 'valid' ? validHTML(d) + howHTML() : stageHTML(d, S.info, link);
+    $('view').innerHTML = `${tabs}${d ? `<p class="muted small">資料日期 ${md(d.date)}</p>` : ''}<div class="trm">${body}</div>`;
+    $('view').querySelector('.chips').onclick = (e) => { const b = e.target.closest('[data-rt]'); if (b) { S.rTab = b.dataset.rt; viewRadar(); } };
+    return;
+  }
   const items = await loadIntel();
   for (const w of S.watch) if (!S.rel[w]) S.rel[w] = await getRelations(w);
   const dates = [...new Set(items.map((x) => x.d))].sort().reverse();
@@ -306,14 +323,15 @@ async function viewRadar() {
   const shown = all.filter((x) => (f.cat === 'all' ? x.imp : x.cat === f.cat)).sort((a, b) => (b.links.length > 0) - (a.links.length > 0) || b.score - a.score);
   const cnt = {};
   for (const x of all) cnt[x.cat] = (cnt[x.cat] || 0) + 1;
-  $('view').innerHTML = `
+  $('view').innerHTML = `${tabs}
     <div class="seg" role="group" aria-label="期間">${[[1, '最新一天'], [5, '近 5 天'], [20, '近 20 天']].map(([v, l]) => `<button type="button" data-days="${v}" aria-pressed="${f.days === v}">${l}</button>`).join('')}</div>
     <div class="chips" role="group" aria-label="類別"><button type="button" data-cat="all" aria-pressed="${f.cat === 'all'}">重要情報</button>${Object.entries(CATS).filter(([k]) => cnt[k]).map(([k, c]) => `<button type="button" data-cat="${k}" aria-pressed="${f.cat === k}">${c.name} ${cnt[k]}</button>`).join('')}</div>
     <p class="muted small">${since ? md(since) + ' 起' : ''}分類 ${all.length} 則，顯示 ${shown.length} 則</p>
     ${shown.slice(0, 50).map(intelCard).join('') || '<p class="empty">這段期間沒有達到門檻的情報</p>'}
     <p class="note">資料每個交易日收盤後由交易所公告整理</p>`;
+  $('view').querySelector('[role=tablist]').onclick = (e) => { const b = e.target.closest('[data-rt]'); if (b) { S.rTab = b.dataset.rt; viewRadar(); } };
   $('view').querySelector('.seg').onclick = (e) => { const b = e.target.closest('[data-days]'); if (b) { f.days = Number(b.dataset.days); viewRadar(); } };
-  $('view').querySelector('.chips').onclick = (e) => { const b = e.target.closest('[data-cat]'); if (b) { f.cat = b.dataset.cat; viewRadar(); } };
+  $('view').querySelectorAll('.chips')[1].onclick = (e) => { const b = e.target.closest('[data-cat]'); if (b) { f.cat = b.dataset.cat; viewRadar(); } };
 }
 function intelCard(it) {
   const c = CATS[it.cat] || { name: it.cat, color: '#555' };
