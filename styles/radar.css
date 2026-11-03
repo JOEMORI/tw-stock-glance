@@ -70,3 +70,9 @@
 .tr-dots { display: inline-flex; gap: 3px; }
 .tr-dots i { font-style: normal; width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; border: 1px solid var(--pill); color: var(--muted); }
 .tr-dots i.on { background: #2F7D4F; border-color: #2F7D4F; color: #FFF; }
+.tr-src summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+.tr-src h4 { font-size: 13px; margin: 10px 0 4px; }
+.tr-src ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+.tr-src li .muted { font-size: 12px; }
+.tr-src .tr-more { font-size: 13px; margin: 4px 0 0; }
+.tr-grid { align-items: start; }

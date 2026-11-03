@@ -30,24 +30,46 @@ async function rss(q, lang, win = ' when:30d') {
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const xml = await r.text();
   const items = [];
+  const dec = (x) => x.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
   for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
-    const title = (m[1].match(/<title>([\s\S]*?)<\/title>/) || [])[1] || '';
+    const title = dec((m[1].match(/<title>([\s\S]*?)<\/title>/) || [])[1] || '');
     const pub = Date.parse((m[1].match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || '');
-    if (pub) items.push({ title: title.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"), pub });
+    const link = dec((m[1].match(/<link>([\s\S]*?)<\/link>/) || [])[1] || '');
+    const src = dec((m[1].match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1] || '');
+    if (pub) items.push({ title: src && title.endsWith(' - ' + src) ? title.slice(0, -(src.length + 3)) : title, pub, link, src });
   }
   return items;
 }
 // 新聞量：用「單日」則數比較（一天很少超過 100 則上限）。
 // 近況 = 最近 3 天的日均；基準 = 前 8 到 28 天中抽 6 天的日均（之後累積滿 3 週改用自己的每日紀錄）。
 // 只比近一個月內，避免 Google 對較舊新聞收錄較少造成偏差。
-async function dayCount(q, lang, d) {
+async function dayCount(q, lang, d, keep) {
   const a = daysAgo(d + 1), b = daysAgo(d - 1); // after 是不含當天，所以前後各留一天，取得 d 那一天
-  try { return Math.min(100, (await rss(q, lang, ` after:${a} before:${b}`)).length); } catch (e) { return null; } finally { await sleep(300); }
+  try {
+    const items = await rss(q, lang, ` after:${a} before:${b}`);
+    if (keep) keep.push(...items);
+    return Math.min(100, items.length);
+  } catch (e) { return null; } finally { await sleep(300); }
 }
-async function newsDays(q, lang, logged) {
+// 近 3 天的標題：去掉重複轉載（標題前 16 字相同視為同一則），留 8 則，卡片上可以直接點。
+// 先排和股市有關的：提到成分股名稱 +3、出現台股用語 +1，同分再看新舊，避免一般時事（例如星鏈的國際新聞）蓋過產業新聞。
+const MKT = /台股|概念股|供應鏈|營收|法說|訂單|出貨|產能|漲停|外資|目標價|EPS|股價|擴產|stock|shares|earnings|revenue|orders|supplier|guidance|analyst/i;
+function heads(items, words = []) {
+  const seen = new Set();
+  const score = (t) => words.reduce((s, w) => s + (w && t.includes(w) ? 3 : 0), 0) + (MKT.test(t) ? 1 : 0);
+  return items.map((x) => ({ ...x, sc: score(x.title) })).sort((x, y) => y.sc - x.sc || y.pub - x.pub).filter((x) => {
+    const k = x.title.replace(/[\s「」『』“”！？!?,，。:：|｜\-]/g, '').slice(0, 16).toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).slice(0, 8).map((x) => ({ t: x.title, u: x.link, s: x.src, d: new Date(x.pub + 8 * 3600000).toISOString().slice(0, 10) }));
+}
+async function newsDays(q, lang, logged, words) {
   const recentDays = [1, 2, 3];
   const recent = [];
-  for (const d of recentDays) recent.push(await dayCount(q, lang, d));
+  const keep = [];
+  for (const d of recentDays) recent.push(await dayCount(q, lang, d, keep));
+  await dayCount(q, lang, 0, keep); // 今天的新聞只拿標題，不算進則數（今天還沒過完）
   let base = null;
   if (logged.length >= 21) base = avg(logged.slice(-28, -7));
   else {
@@ -56,7 +78,7 @@ async function newsDays(q, lang, logged) {
     base = avg(sample.filter((v) => v != null));
   }
   const r = avg(recent.filter((v) => v != null));
-  return { day: recent[0], recent: r, base, n7: recent.filter((v) => v != null).reduce((s, v) => s + v, 0), x: r != null && base ? r / base : null, sat: recent.some((v) => v >= 100) };
+  return { day: recent[0], recent: r, base, n7: recent.filter((v) => v != null).reduce((s, v) => s + v, 0), x: r != null && base ? r / base : null, sat: recent.some((v) => v >= 100), heads: heads(keep, words), q };
 }
 
 // ---------- PTT 股板標題 ----------
@@ -228,7 +250,8 @@ export async function themeRadar({ market, sh, names }) {
     news[d.name] = {};
     for (const [lang, words] of [['en', d.en], ['zh', d.zh]]) {
       const logged = Object.keys(log).sort().map((k) => log[k]?.[d.name]?.news?.[lang]).filter((v) => v != null);
-      news[d.name][lang] = await newsDays(words.map((w) => (w.includes(' ') ? `"${w}"` : w)).join(' OR '), lang, logged);
+      const stocks = lang === 'zh' ? d.ids.map((id) => (names?.[id] || '').replace(/-KY$|\*$/, '')).filter((x) => x.length >= 2) : d.us;
+      news[d.name][lang] = await newsDays(words.map((w) => (w.includes(' ') ? `"${w}"` : w)).join(' OR '), lang, logged, stocks);
     }
   }
   // PTT
@@ -308,7 +331,7 @@ export async function themeRadar({ market, sh, names }) {
     themes.push({
       name: d.name, ids, us: d.us, stage, early, sig,
       r1: r2(r1), r5: r2(r5), r20: r2(r20),
-      news: { en: nw?.en ? { n3: nw.en.n7, x: r2(nw.en.x), base: r2(nw.en.base), sat: nw.en.sat } : null, zh: nw?.zh ? { n3: nw.zh.n7, x: r2(nw.zh.x), base: r2(nw.zh.base), sat: nw.zh.sat } : null },
+      news: { en: nw?.en ? { n3: nw.en.n7, x: r2(nw.en.x), base: r2(nw.en.base), sat: nw.en.sat, heads: nw.en.heads, q: nw.en.q } : null, zh: nw?.zh ? { n3: nw.zh.n7, x: r2(nw.zh.x), base: r2(nw.zh.base), sat: nw.zh.sat, heads: nw.zh.heads, q: nw.zh.q } : null },
       ptt: { n3: p3, base: r2(pBase) }, rev: { acc: revAcc, n: revN, yoy: r2(avg(revYoy)) },
       chip: { buy3, n: ids.length, big: r2(big) }, usm: { r1: r2(usR1), r5: r2(usR5) },
       mv: { today: mvToday, streak },

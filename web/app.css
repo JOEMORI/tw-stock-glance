@@ -115,3 +115,6 @@ details.card[open] > summary { margin-bottom: 8px; }
 .trm .tr-dots { display: inline-flex; gap: 2px; }
 .trm .tr-dots i { font-style: normal; width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 10px; border: 1px solid var(--pill); color: var(--muted); }
 .trm .tr-dots i.on { background: #2F7D4F; border-color: #2F7D4F; color: #FFF; }
+.trm .tr-src h4 { font-size: .85rem; margin: 10px 0 4px; }
+.trm .tr-src ul { margin: 0; padding-left: 18px; font-size: .85rem; line-height: 1.6; }
+.trm .tr-src .tr-more { font-size: .85rem; margin: 4px 0 0; }

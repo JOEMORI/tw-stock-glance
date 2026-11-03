@@ -264,14 +264,18 @@ async function renderThemes() {
   const themeOf = (id) => THEME_DEFS.find((t) => t.ids.includes(id))?.name;
   const industryOf = (id) => (state.info[id]?.industries || []).find((c) => !SKIP_INDUSTRY.test(c));
   const tab = state.trTab || 'stage';
+  const open = [...$('trBody').querySelectorAll('details[open][data-key]')].map((x) => x.dataset.key); // 重畫時保留展開狀態
   $('trBody').innerHTML = tab === 'movers' ? moversHTML(d, state.info, trLink, themeOf, industryOf) : tab === 'clusters' ? clustersHTML(d, state.info, trLink) : tab === 'valid' ? validHTML(d) : tab === 'how' ? howHTML() : stageHTML(d, state.info, trLink, state.ptt);
+  $('trBody').querySelectorAll('details[data-key]').forEach((x) => { if (open.includes(x.dataset.key)) x.open = true; });
   if (tab === 'stage' && state.ptt === undefined) loadPtt();
 }
 // PTT 從你的瀏覽器直接讀（GitHub 那邊被擋），快取 3 小時；讀不到就只顯示搜尋連結。
 async function loadPtt() {
-  state.ptt = null;
+  state.ptt = 'loading';
+  renderThemes();
   try {
-    const names = Object.fromEntries(Object.entries(state.info || {}).map(([k, v]) => [k, v.name]));
+    // 成分股名稱用題材資料附的名稱，不必等個股資料載完
+    const names = { ...(state.themes?.names || {}), ...Object.fromEntries(Object.entries(state.info || {}).map(([k, v]) => [k, v.name])) };
     state.ptt = await pttThemes(THEME_DEFS, names);
   } catch (e) { state.ptt = null; }
   if ((state.trTab || 'stage') === 'stage') renderThemes();
